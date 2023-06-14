@@ -19,7 +19,7 @@ var heroImage = new Image();
 heroImage.onload = function () {
     heroReady = true;
 };
-heroImage.src = "images/hero.png";
+heroImage.src = "images/heroStanding.png";
 
 // Monster image
 var monsterReady = false;
@@ -79,4 +79,20 @@ addEventListener("keyup", function (e) {
     delete keysDown[e.keyCode];
 }, false);
 
+var render = function () {
+    if(bgReady){
+        ctx.drawImage(bgImage, 0, 0)
+    }
+    if(sideReady){
+        ctx.drawImage(sideImage, 968, 0);
+        ctx.drawImage(sideImage, 3, 43)
+    }
+    if(topReady){
+        ctx.drawImage(topImage, 968, 0);
+        ctx.drawImage(topImage, 3, 43)
+    }
+    if(heroReady){
+        ctx.drawImage(heroImage. hero.x, hero.y)
+    }
 
+}
