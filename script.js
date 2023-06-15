@@ -1,7 +1,7 @@
 // Create the canvas
 var canvas = document.createElement("canvas");
 var ctx = canvas.getContext("2d");
-canvas.width = 512;
+canvas.width = 510;
 canvas.height = 480;
 document.body.appendChild(canvas);
 
@@ -79,20 +79,43 @@ addEventListener("keyup", function (e) {
     delete keysDown[e.keyCode];
 }, false);
 
+// Draw everything in the main render function
 var render = function () {
-    if(bgReady){
-        ctx.drawImage(bgImage, 0, 0)
+    if (bgReady) {
+      //console.log('here2');
+      ctx.drawImage(bgImage, 0, 0);
     }
-    if(sideReady){
-        ctx.drawImage(sideImage, 968, 0);
-        ctx.drawImage(sideImage, 3, 43)
-    }
-    if(topReady){
-        ctx.drawImage(topImage, 968, 0);
-        ctx.drawImage(topImage, 3, 43)
-    }
-    if(heroReady){
-        ctx.drawImage(heroImage. hero.x, hero.y)
-    }
+  
+  };
 
-}
+
+
+// The main game loop
+var main = function () {
+    var now = Date.now();
+    var delta = now - then;
+    update(delta / 1000);
+    render();
+    then = now;
+    // Request to do this again ASAP
+    requestAnimationFrame(main);
+};
+
+// Reset the game when the player catches a monster
+var reset = function () {
+  hero.x = canvas.width / 2 - 16;
+  hero.y = canvas.height / 2 - 16;
+
+  //Place the monster somewhere on the screen randomly
+  // but not in the hedges, Article in wrong, the 64 needs to be
+  // hedge 32 + hedge 32 + char 32 = 96
+  monster.x = 32 + Math.random() * (canvas.width - 96);
+  monster.y = 32 + Math.random() * (canvas.height - 96);
+};
+
+// end of define functions ==============================
+
+// Let's play this game!======
+var then = Date.now();
+reset();
+main(); // call the main game loop.
