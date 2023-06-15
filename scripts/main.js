@@ -4,6 +4,7 @@ var ctx = canvas.getContext("2d");
 canvas.width = 500;
 canvas.height = 500;
 document.body.appendChild(canvas);
+let counter = 0;
 
 // Background image
 var bgReady = false;
@@ -20,6 +21,7 @@ heroImage.onload = function () {
     heroReady = true;
 };
 heroImage.src = "images/hero/hero.png";
+
 
 // Monster image
 var monsterReady = false;
@@ -79,26 +81,67 @@ addEventListener("keyup", function (e) {
     delete keysDown[e.keyCode];
 }, false);
 
+//===========================================================
+//Animation
+
+// lots of variables to keep track of sprite geometry
+var rows = 4;
+var cols = 3;
+//second row for the right movement (counting the index from 0)
+var trackRight = 3;
+//third row for the left movement (counting the index from 0)
+var trackLeft = 0;
+var trackUp = 2; // not using up and down in this version, see next version
+var trackDown = 1;
+var spriteWidth = 210; // also spriteWidth/cols;
+var spriteHeight = 280; // also spriteHeight/rows;
+
+var width = spriteWidth / cols;
+var height = spriteHeight / rows;
+
+var curXFrame = 0; // start on left side
+var frameCount = 3; // 3 frames per row
+
+//x and y coordinates of the overall sprite image to get the single frame
+var srcX = 0; // our image has no borders or other stuff
+var srcY = 0;
+//Assuming that at start the character will move right side
+var left = false;
+var right = false;
+var up = false;
+var down = false;
+//==========================================================
+
 
 // Update game objects
 var update = function (modifier) {
   
+  //ctx.clearRect(hero.x, hero.y, width, height);
+  left = false;
+  right = false;
+  up = false;
+  down = false;
+
     // check on keys and not allowing hero move outside of bounds
     if (38 in keysDown && hero.y > 32 + 4) {
       // holding up key
       hero.y -= hero.speed * modifier;
+      up = true;
     }
     if (40 in keysDown && hero.y < canvas.height - (64 + 6)) {
       // holding down key
       hero.y += hero.speed * modifier;
+      down = true;
     }
     if (37 in keysDown && hero.x > 32 + 4) {
       // holding left key
       hero.x -= hero.speed * modifier;
+      left = true;
     }
     if (39 in keysDown && hero.x < canvas.width - (64 + 0)) {
       // holding right key
       hero.x += hero.speed * modifier;
+      right = true;
     }
   
     // Are they touching?
@@ -111,6 +154,44 @@ var update = function (modifier) {
       ++monstersCaught; // keep track of our “score”
       reset(); // start a new cycle
     }
+
+
+    //curXFrame = ++curXFrame % frameCount; //Updating the sprite frame index
+    // it will count 0,1,2,0,1,2,0, etc
+    if (counter == 5) { // adjust this to change "walking speed" of animation
+      curXFrame = ++curXFrame % frameCount; //Updating the sprite frame index
+      // it will count 0,1,2,0,1,2,0, etc
+      counter = 0;
+    } 
+      else {
+      counter++;
+    }
+
+    srcX = curXFrame * width; //Calculating the x coordinate for spritesheet
+    //if left is true, pick Y dim of the correct row
+    if (left) {
+      //calculate srcY
+      srcY = trackLeft * height;
+    }
+    //if the right is true, pick Y dim of the correct row
+    if (right) {
+    //calculating y coordinate for spritesheet
+    srcY = trackDown * height;
+    }
+    if (up) {
+      //calculating y coordinate for spritesheet
+      srcY = trackUp * height;
+    }
+
+    if (down) {
+      //calculating y coordinate for spritesheet
+      srcY = trackRight * height;
+      }
+      
+    if (left == false && right == false && up == false && down == false) {
+    srcX = 0 * width;
+    srcY = 2 * height;
+    }
 };
 
 
@@ -120,8 +201,11 @@ var render = function () {
       ctx.drawImage(bgImage, 0, 0);
     }
     if (heroReady) {
-        ctx.drawImage(heroImage, hero.x, hero.y);
+        //ctx.drawImage(heroImage, hero.x, hero.y);
+      ctx.drawImage(heroImage, srcX, srcY, width, height, hero.x, hero.y,
+      width, height)
     }
+
 };
 
 
