@@ -19,7 +19,7 @@ var heroImage = new Image();
 heroImage.onload = function () {
     heroReady = true;
 };
-heroImage.src = "images/hero/heroStanding.png";
+heroImage.src = "images/hero/hero.png";
 
 // Monster image
 var monsterReady = false;
@@ -31,7 +31,7 @@ monsterImage.src = "images/monster.png";
 
 // Game objects
 var hero = {
-    speed: 256, // movement in pixels per second
+    speed: 116, // movement in pixels per second
     x: 0,  // where on the canvas are they?
     y: 0  // where on the canvas are they?
 };
@@ -111,7 +111,7 @@ var update = function (modifier) {
       ++monstersCaught; // keep track of our “score”
       reset(); // start a new cycle
     }
-  };
+};
 
 
 // Draw everything in the main render function
@@ -121,8 +121,8 @@ var render = function () {
     }
     if (heroReady) {
         ctx.drawImage(heroImage, hero.x, hero.y);
-      }
-  };
+    }
+};
 
 
 
