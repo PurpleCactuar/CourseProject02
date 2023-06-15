@@ -1,8 +1,8 @@
 // Create the canvas
 var canvas = document.createElement("canvas");
 var ctx = canvas.getContext("2d");
-canvas.width = 510;
-canvas.height = 480;
+canvas.width = 500;
+canvas.height = 500;
 document.body.appendChild(canvas);
 
 // Background image
@@ -19,7 +19,7 @@ var heroImage = new Image();
 heroImage.onload = function () {
     heroReady = true;
 };
-heroImage.src = "images/heroStanding.png";
+heroImage.src = "images/hero/heroStanding.png";
 
 // Monster image
 var monsterReady = false;
@@ -79,13 +79,49 @@ addEventListener("keyup", function (e) {
     delete keysDown[e.keyCode];
 }, false);
 
+
+// Update game objects
+var update = function (modifier) {
+  
+    // check on keys and not allowing hero move outside of bounds
+    if (38 in keysDown && hero.y > 32 + 4) {
+      // holding up key
+      hero.y -= hero.speed * modifier;
+    }
+    if (40 in keysDown && hero.y < canvas.height - (64 + 6)) {
+      // holding down key
+      hero.y += hero.speed * modifier;
+    }
+    if (37 in keysDown && hero.x > 32 + 4) {
+      // holding left key
+      hero.x -= hero.speed * modifier;
+    }
+    if (39 in keysDown && hero.x < canvas.width - (64 + 0)) {
+      // holding right key
+      hero.x += hero.speed * modifier;
+    }
+  
+    // Are they touching?
+    if (
+      hero.x <= monster.x + 32 &&
+      monster.x <= hero.x + 32 &&
+      hero.y <= monster.y + 32 &&
+      monster.y <= hero.y + 32
+    ) {
+      ++monstersCaught; // keep track of our “score”
+      reset(); // start a new cycle
+    }
+  };
+
+
 // Draw everything in the main render function
 var render = function () {
     if (bgReady) {
-      //console.log('here2');
       ctx.drawImage(bgImage, 0, 0);
     }
-  
+    if (heroReady) {
+        ctx.drawImage(heroImage, hero.x, hero.y);
+      }
   };
 
 
