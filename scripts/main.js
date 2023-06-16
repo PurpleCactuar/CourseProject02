@@ -22,14 +22,30 @@ heroImage.onload = function () {
 };
 heroImage.src = "images/hero/hero.png";
 
-
-// Monster image
-var monsterReady = false;
-var monsterImage = new Image();
-monsterImage.onload = function () {
-    monsterReady = true;
+// Hero image pull
+var heroPullReady = false;
+var heroPullImage = new Image();
+heroPullImage.onload = function () {
+    heroPullReady = false;
 };
-monsterImage.src = "images/monster.png";
+heroPullImage.src = "images/hero/heroPull.png";
+
+
+// Pikmin image
+var pikminReady = false;
+var pikminImage = new Image();
+pikminImage.onload = function () {
+    pikminReady = true;
+};
+pikminImage.src = "images/pikmin/ground.png";
+
+// Pikmin pull image
+var pikminPullReady = false;
+var pikminPullImage = new Image();
+pikminPullImage.onload = function () {
+    pikminPullReady = false;
+};
+pikminPullImage.src = "images/pikmin/pikmin.png";
 
 // Game objects
 var hero = {
@@ -37,39 +53,16 @@ var hero = {
     x: 0,  // where on the canvas are they?
     y: 0  // where on the canvas are they?
 };
-var monster = {
-// for this version, the monster does not move, so just and x and y
+var pikmin = {
+// for this version, the pikmin does not move, so just and x and y
     x: 0,
     y: 0
 };
-var monstersCaught = 0;
-
-// Reset the game when the player catches a monster
-var reset = function () {
-    hero.x = canvas.width / 2;
-    hero.y = canvas.height / 2;
-
-  //Place the monster somewhere on the screen randomly
-// but not in the hedges, Article in wrong, the 64 needs to be 
-// hedge 32 + hedge 32 + char 32 = 96
-    monster.x = 32 + (Math.random() * (canvas.width - 96));
-    monster.y = 32 + (Math.random() * (canvas.height - 96));
-};
-
-if (heroReady) {
-        ctx.drawImage(heroImage, hero.x, hero.y);
-    }
-
-    if (monsterReady) {
-        ctx.drawImage(monsterImage, monster.x, monster.y);
-    }
+var pikminsCaught = 0;
 
 // Handle keyboard controls
-var keysDown = {}; //object were we properties when keys go down
+    var keysDown = {}; //object were we properties when keys go down
                 // and then delete them when the key goes up
-// so the object tells us if any key is down when that keycode
-// is down.  In our game loop, we will move the hero image if when
-// we go thru render, a key is down
 
 addEventListener("keydown", function (e) {
     console.log(e.keyCode + " down")
@@ -82,46 +75,55 @@ addEventListener("keyup", function (e) {
 }, false);
 
 //===========================================================
-//Animation
+//Animation variables
 
-// lots of variables to keep track of sprite geometry
 var rows = 4;
 var cols = 3;
-//second row for the right movement (counting the index from 0)
 var trackRight = 3;
-//third row for the left movement (counting the index from 0)
 var trackLeft = 0;
-var trackUp = 2; // not using up and down in this version, see next version
+var trackUp = 2;
 var trackDown = 1;
-var spriteWidth = 210; // also spriteWidth/cols;
-var spriteHeight = 280; // also spriteHeight/rows;
-
+var spriteWidth = 210;
+var spriteHeight = 280;
 var width = spriteWidth / cols;
 var height = spriteHeight / rows;
 
 var curXFrame = 0; // start on left side
 var frameCount = 3; // 3 frames per row
-
-//x and y coordinates of the overall sprite image to get the single frame
-var srcX = 0; // our image has no borders or other stuff
+var srcX = 0;
 var srcY = 0;
-//Assuming that at start the character will move right side
+
 var left = false;
 var right = false;
 var up = false;
 var down = false;
+var space = false;
+var touch = false;
 //==========================================================
 
 
 // Update game objects
 var update = function (modifier) {
   
-  //ctx.clearRect(hero.x, hero.y, width, height);
   left = false;
   right = false;
   up = false;
   down = false;
 
+  var pull = function (){
+
+    if (32 in keysDown && touch){
+      
+      heroReady = false;
+      pikminReady = false;
+
+      heroPullReady = true;
+      pikminPullReady=true;
+      
+
+      
+    }
+  }
     // check on keys and not allowing hero move outside of bounds
     if (38 in keysDown && hero.y > 32 + 4) {
       // holding up key
@@ -143,22 +145,27 @@ var update = function (modifier) {
       hero.x += hero.speed * modifier;
       right = true;
     }
-  
+
+    
     // Are they touching?
     if (
-      hero.x <= monster.x + 32 &&
-      monster.x <= hero.x + 32 &&
-      hero.y <= monster.y + 32 &&
-      monster.y <= hero.y + 32
+      hero.x <= pikmin.x + 32 &&
+     pikmin.x <= hero.x + 32 &&
+      hero.y <= pikmin.y + 32 &&
+     pikmin.y <= hero.y + 32
     ) {
-      ++monstersCaught; // keep track of our “score”
-      reset(); // start a new cycle
+      touch = true;
+      pull();
+      ++pikminsCaught; // keep track of our “score”
+      //reset(); // start a new cycle
     }
+
+
 
 
     //curXFrame = ++curXFrame % frameCount; //Updating the sprite frame index
     // it will count 0,1,2,0,1,2,0, etc
-    if (counter == 5) { // adjust this to change "walking speed" of animation
+    if (counter == 6) { // adjust this to change "walking speed" of animation
       curXFrame = ++curXFrame % frameCount; //Updating the sprite frame index
       // it will count 0,1,2,0,1,2,0, etc
       counter = 0;
@@ -188,10 +195,10 @@ var update = function (modifier) {
       srcY = trackRight * height;
       }
       
-    if (left == false && right == false && up == false && down == false) {
-    srcX = 0 * width;
-    srcY = 2 * height;
-    }
+    /*if (left == false && right == false && up == false && down == false) {
+      srcX = 0 * width; //col
+      srcY = 2 * height; //row
+    }*/
 };
 
 
@@ -200,11 +207,23 @@ var render = function () {
     if (bgReady) {
       ctx.drawImage(bgImage, 0, 0);
     }
+    if (pikminReady) {
+      ctx.drawImage(pikminImage, pikmin.x, pikmin.y);
+    }
     if (heroReady) {
         //ctx.drawImage(heroImage, hero.x, hero.y);
       ctx.drawImage(heroImage, srcX, srcY, width, height, hero.x, hero.y,
       width, height)
     }
+    if (heroPullReady) {
+      ctx.drawImage(heroPullImage, srcX, srcY, width, height, hero.x, hero.y,
+      width, height);
+
+    if(pikminPullReady){
+      ctx.drawImage(pikminPullImage, srcX, srcY, width, height, pikmin.x, pikmin.y,
+        width, height)
+    }
+  }
 
 };
 
@@ -221,16 +240,16 @@ var main = function () {
     requestAnimationFrame(main);
 };
 
-// Reset the game when the player catches a monster
+// Reset the game when the player catches a pikmin
 var reset = function () {
   hero.x = canvas.width / 2 - 16;
   hero.y = canvas.height / 2 - 16;
 
-  //Place the monster somewhere on the screen randomly
+  //Place the pikmin somewhere on the screen randomly
   // but not in the hedges, Article in wrong, the 64 needs to be
   // hedge 32 + hedge 32 + char 32 = 96
-  monster.x = 32 + Math.random() * (canvas.width - 96);
-  monster.y = 32 + Math.random() * (canvas.height - 96);
+ pikmin.x = 32 + Math.random() * (canvas.width - 96);
+ pikmin.y = 32 + Math.random() * (canvas.height - 96);
 };
 
 // end of define functions ==============================
