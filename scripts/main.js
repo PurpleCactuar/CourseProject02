@@ -4,6 +4,7 @@ var ctx = canvas.getContext("2d");
 canvas.width = 500;
 canvas.height = 500;
 document.body.appendChild(canvas);
+let counter = 0;
 
 // Background image
 var bgReady = false;
@@ -31,10 +32,11 @@ pikminImage.src = "images/pikmin/ground.png";
 
 // Game objects
 var hero = {
-    speed: 116, // movement in pixels per second
-    x: 0,  // where on the canvas are they?
-    y: 0  // where on the canvas are they?
+    speed: 176,
+    x: 0,
+    y: 0
 };
+
 var pikminsCaught = 0;
 var pikminCount = 10;
 var pikmins = [];
@@ -50,33 +52,100 @@ addEventListener("keyup", function (e) {
     delete keysDown[e.keyCode];
 }, false);
 
+
+//===========================================================
+//Animation variables
+
+var rows = 4;
+var cols = 3;
+var trackRight = 3;
+var trackLeft = 0;
+var trackUp = 2;
+var trackDown = 1;
+var spriteWidth = 210;
+var spriteHeight = 280;
+var width = spriteWidth / cols;
+var height = spriteHeight / rows;
+
+var curXFrame = 0; // start on left side
+var frameCount = 3; // 3 frames per row
+var srcX = 0;
+var srcY = 0;
+
+var left = false;
+var right = false;
+var up = false;
+var down = false;
+//==========================================================
+
 // Update game objects
 var update = function (modifier) {
-    if (38 in keysDown && hero.y > 32 + 4) {
-        // holding up key
-        hero.y -= hero.speed * modifier;
-    }
-    if (40 in keysDown && hero.y < canvas.height - (64 + 6)) {
-        // holding down key
-        hero.y += hero.speed * modifier;
-    }
-    if (37 in keysDown && hero.x > 32 + 4) {
-        // holding left key
-        hero.x -= hero.speed * modifier;
-    }
-    if (39 in keysDown && hero.x < canvas.width - (64 + 0)) {
-        // holding right key
-        hero.x += hero.speed * modifier;
-    }
+  left = false;
+  right = false;
+  up = false;
+  down = false;
 
-    // Check if hero has caught any pikmin
-    for (var i = 0; i < pikminCount; i++) {
-        var pikmin = pikmins[i];
-        if (!pikmin.caught && hero.x <= pikmin.x + 32 && pikmin.x <= hero.x + 32 &&
-            hero.y <= pikmin.y + 32 && pikmin.y <= hero.y + 32) {
-            pikmin.caught = true;
-            pikminsCaught++;
-        }
+  if (38 in keysDown && hero.y > 32 + 4) {
+    // holding up key
+    hero.y -= hero.speed * modifier;
+    up = true;
+  }
+  if (40 in keysDown && hero.y < canvas.height - (64 + 6)) {
+    // holding down key
+    hero.y += hero.speed * modifier;
+    down = true;
+  }
+  if (37 in keysDown && hero.x > 32 + 4) {
+    // holding left key
+    hero.x -= hero.speed * modifier;
+    left = true;
+  }
+  if (39 in keysDown && hero.x < canvas.width - (64 + 0)) {
+    // holding right key
+    hero.x += hero.speed * modifier;
+    right = true;
+  }
+
+  // Check if hero has caught any pikmin
+  for (var i = 0; i < pikminCount; i++) {
+    var pikmin = pikmins[i];
+    if (
+      !pikmin.caught &&
+      hero.x <= pikmin.x + 32 &&
+      pikmin.x <= hero.x + 32 &&
+      hero.y <= pikmin.y + 32 &&
+      pikmin.y <= hero.y + 32
+    ) {
+      pikmin.caught = true;
+      pikminsCaught++;
+    }
+  }
+
+  if (counter == 6) {
+    curXFrame = ++curXFrame % frameCount; 
+    counter = 0;
+  } 
+  else {
+    counter++;
+  }
+
+  srcX = curXFrame * width; 
+  if (left) {
+    srcY = trackLeft * height;
+  }
+  if (right) {
+    srcY = trackDown * height;
+  }
+  if (up) {
+    srcY = trackUp * height;
+  }
+
+  if (down) {
+    srcY = trackRight * height;
+  }
+    if (left == false && right == false && up == false && down == false) {
+      srcX = 0 * width; //col
+      srcY = 2 * height; //row
     }
 };
 
@@ -96,7 +165,8 @@ var render = function () {
     }
 
     if (heroReady) {
-        ctx.drawImage(heroImage, hero.x, hero.y);
+        ctx.drawImage(heroImage, srcX, srcY, width, height, hero.x, hero.y,
+            width, height);
     }
 
     // Display score
