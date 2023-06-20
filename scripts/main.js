@@ -5,6 +5,7 @@ canvas.width = 500;
 canvas.height = 500;
 document.body.appendChild(canvas);
 let counter = 0;
+let xcounter = 0;
 
 // Background image
 var bgReady = false;
@@ -30,9 +31,23 @@ pikminImage.onload = function () {
 };
 pikminImage.src = "images/pikmin/ground.png";
 
+// Monter image
+var monsterReady = false;
+var monsterImage = new Image();
+monsterImage.onload = function () {
+    monsterReady = true;
+};
+monsterImage.src = "images/monster/monster.png";
+
+
 // Game objects
 var hero = {
     speed: 176,
+    x: 0,
+    y: 0
+};
+var monster = {
+    speed: 100,
     x: 0,
     y: 0
 };
@@ -76,6 +91,21 @@ var left = false;
 var right = false;
 var up = false;
 var down = false;
+
+//Monster variables
+var rowMonster = 2;
+var colsMonster = 4;
+var spriteWidthMonster = 320;
+var spriteHeightMonster = 200;
+
+var widthMonster = spriteWidthMonster / colsMonster;
+var heightMonster = spriteHeightMonster / rowMonster;
+
+var monstCurXFrame = 0;
+var monstFrameCount = 4;
+var monstSrcX = 0;
+var monstSrcY = 0;
+
 //==========================================================
 
 // Update game objects
@@ -88,24 +118,53 @@ var update = function (modifier) {
   if (38 in keysDown && hero.y > 32 + 4) {
     // holding up key
     hero.y -= hero.speed * modifier;
+    monster.y -= monster.speed * modifier;
     up = true;
   }
-  if (40 in keysDown && hero.y < canvas.height - (64 + 6)) {
+  if (40 in keysDown && hero.y < canvas.height - (64 + 6) && monster.y < canvas.height - (64 + 6)) {
     // holding down key
     hero.y += hero.speed * modifier;
+    monster.x -= monster.speed * modifier;
     down = true;
   }
-  if (37 in keysDown && hero.x > 32 + 4) {
+  if (37 in keysDown && hero.x > 32 + 4 && monster.x > 32 + 4) {
     // holding left key
     hero.x -= hero.speed * modifier;
+    monster.x += monster.speed * modifier;
     left = true;
   }
   if (39 in keysDown && hero.x < canvas.width - (64 + 0)) {
     // holding right key
     hero.x += hero.speed * modifier;
+    monster.x -= monster.speed * modifier;
     right = true;
   }
 
+
+  // Monster movement
+  if (xcounter == 6) {
+    monstCurXFrame = ++monstCurXFrame % monstFrameCount; 
+    xcounter = 0;
+  } 
+  else {
+    xcounter++;
+  }
+
+  monstSrcX = monstCurXFrame * widthMonster;
+
+  if (left) {
+    monstSrcY = trackLeft * heightMonster;
+  }
+  if (right) {
+    monstSrcY = trackDown * heightMonster;
+  }
+  if (up) {
+    srcY = trackUp * height;
+  }
+
+  if (down) {
+    srcY = trackRight * height;
+  }
   // Check if hero has caught any pikmin
   for (var i = 0; i < pikminCount; i++) {
     var pikmin = pikmins[i];
@@ -120,7 +179,7 @@ var update = function (modifier) {
       pikminsCaught++;
     }
   }
-
+  //set animation speed and direction
   if (counter == 6) {
     curXFrame = ++curXFrame % frameCount; 
     counter = 0;
@@ -147,7 +206,8 @@ var update = function (modifier) {
       srcX = 0 * width; //col
       srcY = 2 * height; //row
     }
-};
+};//End of update
+//=====================================================
 
 // Draw everything in the main render function
 var render = function () {
@@ -167,6 +227,10 @@ var render = function () {
     if (heroReady) {
         ctx.drawImage(heroImage, srcX, srcY, width, height, hero.x, hero.y,
             width, height);
+    }
+    if(monsterReady){
+        ctx.drawImage(monsterImage, monstSrcX, monstSrcY, widthMonster, heightMonster,
+            monster.x, monster.y, widthMonster, heightMonster);
     }
 
     // Display score
@@ -190,9 +254,10 @@ var render = function () {
 
 // Reset the game
 var reset = function () {
-    hero.x = canvas.width / 2 - 16;
-    hero.y = canvas.height / 2 - 16;
-
+    hero.x = canvas.width / 2 - 50;
+    hero.y = canvas.height / 2 - 50;
+    monster.x = canvas.width / 5;
+    monster.y = canvas.height / 5;
     pikmins = [];
     for (var i = 0; i < pikminCount; i++) {
         var pikmin = {
@@ -203,21 +268,23 @@ var reset = function () {
         pikmins.push(pikmin);
     }
 
-    startTime = Date.now();
+    //startTime = Date.now();
     pikminsCaught = 0;
 };
 
 // The main game loop
 var main = function () {
-    var now = Date.now();
-    var delta = now - then;
-    update(delta / 1000);
-    render();
-    then = now;
-    // Request to do this again ASAP
-    if (timeLeft > 0) {
-        requestAnimationFrame(main);
-    }
+
+        var now = Date.now();
+        var delta = now - then;
+        update(delta / 1000);
+        render();
+        then = now;
+        if (timeLeft > 0) {
+            requestAnimationFrame(main);
+        }
+    
+
 };
 
 // Start the game
